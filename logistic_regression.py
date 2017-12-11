@@ -54,7 +54,8 @@ class MyLogisticRegression(object):
         D = [0.0] * len(sample_list)
         for i in range(0, len(sample_list)):
             sample = sample_list[i]
-            D[i] = sample.label - 1 / (1 + math.exp(-z[i]))
+            D[i] =  1 / (1 + math.exp(-z[i])) - sample.label
+            #print sample.features, w, sample.label, z[i], D[i]
         for i in range(0, self._feature_size):
             for j in range(0, len(sample_list)):
                 sample = sample_list[j]
@@ -84,7 +85,6 @@ class MyLogisticRegression(object):
         while round < self._max_round:
             f, z = self._compute(sample_list, self._w)
             g = self._gradient(sample_list, z, self._w)
-            print g
 
             round += 1
             print "Round %d Loss: %f" % (round, f)
@@ -96,7 +96,7 @@ class MyLogisticRegression(object):
             w_new = [0.0] * self._feature_size
             while k >= 0.000001:
                 for i in range(0, self._feature_size):
-                    w_new[i] = self._w[i] + k * g[i]
+                    w_new[i] = self._w[i] - k * g[i]
                 f_new, _ = self._compute(sample_list, w_new)
                 print "%f: %f ---> %f" % (k, f, f_new)
                 if f_new < f:
@@ -147,6 +147,20 @@ class MyLogisticRegression(object):
 
 
 
+def small_test():
+    sample_list = []
+    s1 = Sample()
+    s1.features = [0, 1]
+    s1.label = 1
+    sample_list.append(s1)
+    s2 = Sample()
+    s2.features = [1, 0]
+    s2.label = 0
+    sample_list.append(s2)
+    mylr = MyLogisticRegression(norm="l2", C=0.01, learning_rate=0.1, max_round=500, epsilon=1e-4)
+    mylr.fit(sample_list)
+    print mylr._w
+
 def main():
     import sys
     from sklearn.datasets import load_iris
@@ -173,7 +187,7 @@ def main():
         sample = Sample()
         for j in range(0, feature_size):
             sample.features.append(X_train[i,j])
-        if y_train[i] == 0:
+        if y_train[i] == 2:
             sample.label = 1.0
         else:
             sample.label = 0.0
